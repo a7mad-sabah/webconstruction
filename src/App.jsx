@@ -1,19 +1,19 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import Loader from "./components/Loader";
+import Navbar from "./Components/Navbar";
+import Footer from "./Components/Footer";
+import Loader from "./Components/Loader";
 // aa
-import Home from "./pages/Home";
+import Home from "./Pages/Home";
 import Workers from "./Pages/Workers";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import About from "./pages/About";
-import NotFound from "./pages/NotFound";
-import Factories from "./pages/Factories";
+import Login from "./Pages/Login";
+import Register from "./Pages/Register";
+import About from "./Pages/About";
+import NotFound from "./Pages/NotFound";
+import Factories from "./Pages/Factories";
 import Companyregister from "./Pages/Companyregister";
-import Users from "./Pages/Users"
+import Users from "./Pages/Users";
 
 // 🔥 App Wrapper
 function AppWrapper() {
