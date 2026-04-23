@@ -8,7 +8,7 @@ import Loader from "./components/Loader";
 import Home from "./pages/Home";
 import Workers from "./Pages/Workers";
 import Login from "./pages/Login";
-import Register from "./pages/Register";\
+import Register from "./pages/Register";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import Factories from "./pages/Factories";
