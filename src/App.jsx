@@ -38,7 +38,7 @@ function AppWrapper() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/workers" element={<Workers />} />
-        <Route path="/worker/:id" element={<WorkerProfile />} />
+        {/* <Route path="/worker/:id" element={<WorkerProfile />} /> */}
 
         {/* Auth Pages */}
         <Route path="/login" element={<Login />} />

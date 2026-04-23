@@ -1,7 +1,7 @@
 
 
 import React, { useEffect, useRef, useState } from "react";
-import Testimonials from "../components/Testimonials";
+import Testimonials from "../Components/Testimonials";
 
 export default function Home() {
   const sliderRef = useRef(null);
