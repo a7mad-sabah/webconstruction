@@ -209,7 +209,7 @@ function GlowCard({ worker, index }) {
           <img
             src={
               worker.profile_image
-                ? `http://localhost/goldenhand/my-project/uploads/${worker.profile_image}`
+                ? worker.profile_image
                 : `https://i.pravatar.cc/150?u=${worker.id}`
             }
             className="w-20 h-20 rounded-full shadow-md mb-3"

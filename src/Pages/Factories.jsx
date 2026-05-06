@@ -209,19 +209,13 @@ function GlowCard({ factory, index }) {
 
         <div className="relative z-10 bg-white/80 backdrop-blur-xl p-5 rounded-3xl flex flex-col items-center text-center">
           <img
-            src={
-              factory.image
-                ? `http://localhost/goldenhand/my-project/uploads/${factory.image}`
-                : "https://i.pravatar.cc/150"
-            }
+            src={factory.image ? factory.image : "https://i.pravatar.cc/150"}
             className="w-20 h-20 rounded-full shadow-md mb-3"
             alt="factory"
-          />
+          />{" "}
 
           <h2 className="text-lg font-bold text-gray-800">{factory.name}</h2>
-
           <p className="text-indigo-500 font-medium text-sm">{factory.type}</p>
-
           <div className="flex items-center gap-1 mt-2 text-yellow-500">
             <FaStar />
             <span className="font-semibold text-gray-700">
@@ -229,11 +223,9 @@ function GlowCard({ factory, index }) {
             </span>
             <span className="text-gray-400 text-sm">/ 5</span>
           </div>
-
           <p className="text-gray-500 text-xs mt-3 px-2">
             {factory.description || "بەردەست نییە"}
           </p>
-
           <div className="w-full mt-4 flex flex-col gap-2">
             <button
               onClick={() => setShowModal(true)}

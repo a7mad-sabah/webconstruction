@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Testimonials from "../Components/Testimonials";
-
+import { useNavigate } from "react-router-dom";
 export default function Home() {
   const sliderRef = useRef(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -25,7 +25,7 @@ export default function Home() {
     "/public/logos/7.png",
     "/public/logos/8.png",
   ];
-
+const navigate = useNavigate();
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);

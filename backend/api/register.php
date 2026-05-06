@@ -26,21 +26,20 @@ if (!$data) {
 $firstName = $data["firstName"] ?? "";
 $lastName  = $data["lastName"] ?? "";
 $email     = $data["email"] ?? "";
-$password  = $data["password"] ?? ""; // ✅ plain password
-$city = $data["city"] ?? "";
+$password  = $data["password"] ?? "";
 $title     = $data["title"] ?? "";
 $jobType   = $data["jobType"] ?? "";
 $phone     = $data["phone"] ?? "";
 $bio       = $data["bio"] ?? "";
 $profileImage = $data["profileImage"] ?? "";
 
-// required check
+// required
 if (!$firstName || !$lastName || !$email || !$password) {
     echo json_encode(["success" => false, "message" => "Required fields missing"]);
     exit();
 }
 
-// email exists
+// check email
 $check = $conn->prepare("SELECT id FROM users WHERE email=?");
 $check->bind_param("s", $email);
 $check->execute();
@@ -50,6 +49,31 @@ if ($res->num_rows > 0) {
     echo json_encode(["success" => false, "message" => "Email exists"]);
     exit();
 }
+
+// ✅ image convert
+if ($profileImage) {
+    $folder = "../uploads/";
+
+    if (!file_exists($folder)) {
+        mkdir($folder, 0777, true);
+    }
+
+    $image_parts = explode(";base64,", $profileImage);
+
+    if (count($image_parts) == 2) {
+        $image_base64 = base64_decode($image_parts[1]);
+
+        $fileName = uniqid() . ".png";
+        $filePath = $folder . $fileName;
+
+        file_put_contents($filePath, $image_base64);
+
+        $profileImage = "uploads/" . $fileName;
+    }
+}
+
+// ❗ (پێشنیار) password hash
+$password = password_hash($password, PASSWORD_DEFAULT);
 
 $sql = "INSERT INTO users 
 (first_name,last_name,email,password,title,job_type,phone,bio,profile_image)
@@ -62,7 +86,7 @@ $stmt->bind_param(
     $firstName,
     $lastName,
     $email,
-    $password, // ❌ no hashing, مستقیم هەڵگیراوە
+    $password,
     $title,
     $jobType,
     $phone,

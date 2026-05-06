@@ -57,5 +57,8 @@ echo json_encode([
     "companies" => $companies
 ]);
 
+
+
+
 $conn->close();
 ?>
