@@ -33,16 +33,14 @@ export default function Services() {
 
     fetchWorkers();
   }, []);
+const types = ["هەموو", "سلێمانی", "هەولێر", "کەرکوک", "هەڵەبجە", "دهۆک"];
 
-  const jobs = ["هەموو", "بنیاتنەر", "کارەباکار", "ڕەنگکار", "دیزاین"];
+const filteredWorkers = workers.filter((w) => {
+  const matchName = w.name?.toLowerCase().includes(search.toLowerCase());
+  const matchCity = jobFilter === "هەموو" || w.city === jobFilter;
 
-  const filteredWorkers = workers.filter((w) => {
-    const matchName = w.name?.toLowerCase().includes(search.toLowerCase());
-    const matchJob = jobFilter === "هەموو" || w.job === jobFilter;
-
-    return matchName && matchJob;
-  });
-
+  return matchName && matchCity;
+});
   return (
     <div dir="rtl" className="min-h-screen py-6 text-right">
       <motion.div
@@ -74,7 +72,7 @@ export default function Services() {
               onChange={(e) => setJobFilter(e.target.value)}
               className="appearance-none px-4 py-2 pl-10 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition"
             >
-              {jobs.map((job, i) => (
+              {types.map((job, i) => (
                 <option key={i} value={job}>
                   {job}
                 </option>
@@ -206,16 +204,6 @@ function GlowCard({ worker, index }) {
         )}
 
         <div className="relative z-10 bg-white/80 backdrop-blur-xl p-5 rounded-3xl flex flex-col items-center text-center">
-          <img
-            src={
-              worker.profile_image
-                ? worker.profile_image
-                : `https://i.pravatar.cc/150?u=${worker.id}`
-            }
-            className="w-20 h-20 rounded-full shadow-md mb-3"
-            alt="worker"
-          />
-
           <h2 className="text-lg font-bold text-gray-800">{worker.name}</h2>
 
           <p className="text-indigo-500 font-medium text-sm">{worker.job}</p>

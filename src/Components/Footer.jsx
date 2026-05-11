@@ -8,9 +8,9 @@ export default function Example() {
     >
       <div className="max-w-7xl mx-auto px-6 py-16 flex flex-col items-center">
         {/* Logo PNG */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <img alt="لۆگۆ" className="h-12 drop-shadow-lg" src="/logo.svg" />
-        </div>
+        </div> */}
 
         <p className="text-center max-w-xl text-sm font-normal leading-relaxed text-slate-300">
           بەهێزکردنی دروستکەران لەسەرانسەری جیهان بە پێشکەوتوترین ئامرازەکانی

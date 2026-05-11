@@ -45,11 +45,10 @@ while ($row = $result->fetch_assoc()) {
         "id" => $row["id"] ?? 0,
         "name" => $row["karganame"] ?? "",
         "type" => $row["mawadtype"] ?? "",
-        "title" => $row["title"] ?? "",
         "description" => $row["bio"] ?? "",
+        "city" => $row["city"],  
         "phone" => $row["phone"] ?? "",
         "rating" => 4.5,
-        "image" => $row["profile_image"] ?? null
     ];
 }
 

@@ -1,8 +1,5 @@
-
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 /* 🔥 Input Component */
@@ -31,14 +28,14 @@ export default function Register() {
     lastName: "",
     email: "",
     password: "",
-    title: "",
     jobType: "",
     phone: "",
     bio: "",
-    profileImage: "",
+    experienceYears: "",
+    city: "",
+    cvFile: "",
   });
 
-  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
   /* 🧠 handle input */
@@ -46,19 +43,21 @@ export default function Register() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  /* 📸 image → base64 */
-  const handleImageChange = (e) => {
+  /* 📁 FILE */
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
 
     if (file) {
       const reader = new FileReader();
 
       reader.onloadend = () => {
-        setForm({ ...form, profileImage: reader.result });
+        setForm({
+          ...form,
+          cvFile: reader.result,
+        });
       };
 
       reader.readAsDataURL(file);
-      setPreview(URL.createObjectURL(file));
     }
   };
 
@@ -69,6 +68,17 @@ export default function Register() {
     try {
       setLoading(true);
 
+      /* ✅ CLEAN DATA */
+      const cleanForm = {
+        ...form,
+        experienceYears: form.experienceYears || null,
+        phone: form.phone || null,
+        bio: form.bio || null,
+        city: form.city || null,
+        cvFile: form.cvFile || null,
+        jobType: form.jobType || null,
+      };
+
       const res = await fetch(
         "http://localhost/goldenhand/my-project/backend/api/register.php",
         {
@@ -76,7 +86,7 @@ export default function Register() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(form),
+          body: JSON.stringify(cleanForm),
         },
       );
 
@@ -85,7 +95,6 @@ export default function Register() {
       if (data.success) {
         alert("✅ ئەکاونت بە سەرکەوتوویی دروستکرا");
 
-        // 👉 redirect to login page
         navigate("/login");
       } else {
         alert("❌ هەڵە: " + data.message);
@@ -111,30 +120,10 @@ export default function Register() {
             <h1 className="text-3xl font-bold text-center">
               دروستکردنی هەژمار
             </h1>
+
             <p className="text-indigo-100 text-sm text-center mt-5">
               پڕۆفایلی پیشەیی دروست بکە و بەشداری بکە
             </p>
-          </div>
-
-          {/* IMAGE UPLOAD */}
-          <div className="flex flex-col items-center mt-10">
-            <div className="w-28 h-28 rounded-full border-4 border-white bg-white overflow-hidden flex items-center justify-center shadow-lg">
-              {preview ? (
-                <img src={preview} className="w-full h-full object-cover" />
-              ) : (
-                <FaUserCircle className="text-7xl text-gray-400" />
-              )}
-            </div>
-
-            <label className="mt-3 text-sm cursor-pointer underline">
-              وێنە هەڵبژێرە
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-            </label>
           </div>
 
           <div className="mt-10 text-center">
@@ -142,7 +131,7 @@ export default function Register() {
               to="/companyregister"
               className="inline-block px-4 py-2 text-sm bg-indigo-500 rounded-lg hover:bg-indigo-400 transition"
             >
-              تۆمارکردنی کارگە
+              تۆمارکردنی کۆگا
             </Link>
           </div>
         </div>
@@ -155,6 +144,7 @@ export default function Register() {
               name="firstName"
               onChange={handleChange}
             />
+
             <InputField
               label="ناوی دووەم"
               name="lastName"
@@ -171,20 +161,53 @@ export default function Register() {
             onChange={handleChange}
           />
 
-          <div className="grid grid-cols-2 gap-3">
-            <InputField label="ناونیشان" name="title" onChange={handleChange} />
-            <InputField
-              label="جۆری کار"
-              name="jobType"
-              onChange={handleChange}
-            />
-          </div>
+          <InputField label="جۆری کار" name="jobType" onChange={handleChange} />
 
           <InputField
             label="ژمارەی مۆبایل"
             name="phone"
             onChange={handleChange}
           />
+
+          {/* EXPERIENCE + CITY */}
+          <div className="grid grid-cols-2 gap-3">
+            <InputField
+              label="ساڵەکانی ئەزموون"
+              name="experienceYears"
+              type="number"
+              onChange={handleChange}
+            />
+
+            <div>
+              <label className="block mb-1 text-sm text-gray-600">شار</label>
+
+              <select
+                name="city"
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-xl"
+              >
+                <option value="">شار هەڵبژێرە</option>
+                <option value="سلێمانی">سلێمانی</option>
+                <option value="هەڵەبجە">هەڵەبجە</option>
+                <option value="دهۆک">دهۆک</option>
+                <option value="کەرکوک">کەرکوک</option>
+                <option value="هەولێر">هەولێر</option>
+              </select>
+            </div>
+          </div>
+
+          {/* FILE */}
+          <div>
+            <label className="block mb-1 text-sm text-gray-600">
+              فایل ئەپڵۆد بکە
+            </label>
+
+            <input
+              type="file"
+              onChange={handleFileChange}
+              className="w-full p-3 border border-gray-300 rounded-xl"
+            />
+          </div>
 
           {/* BIO */}
           <div>

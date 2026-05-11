@@ -14,6 +14,7 @@ import NotFound from "./Pages/NotFound";
 import Factories from "./Pages/Factories";
 import Companyregister from "./Pages/Companyregister";
 import Users from "./Pages/Users";
+import Agadari from "./Pages/Agadari";
 
 // 🔥 App Wrapper
 function AppWrapper() {
@@ -49,6 +50,7 @@ function AppWrapper() {
         <Route path="/about" element={<About />} />
         <Route path="/factories" element={<Factories />} />
         <Route path="/Users" element={<Users />} />
+        <Route path="/Agadari" element={<Agadari />} />
 
         {/* 404 Page */}
         <Route path="*" element={<NotFound />} />

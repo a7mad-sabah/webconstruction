@@ -8,18 +8,17 @@ $conn = new mysqli("localhost", "root", "", "workers_db");
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$worker_id = $data["worker_id"];
-$name = $data["name"];
-$email = $data["email"];
-$feedback = $data["feedback"];
-$rating = $data["rating"];
+if (!isset($data["id"])) {
+    echo json_encode(["success" => false]);
+    exit;
+}
 
-$sql = "INSERT INTO feedback (worker_id, name, email, feedback, rating)
-        VALUES ('$worker_id', '$name', '$email', '$feedback', '$rating')";
+$id = $data["id"];
 
-if ($conn->query($sql) === TRUE) {
+$sql = "DELETE FROM companies WHERE id=$id";
+
+if ($conn->query($sql)) {
     echo json_encode(["success" => true]);
 } else {
     echo json_encode(["success" => false]);
 }
-?>

@@ -35,20 +35,18 @@ export default function Factories() {
     fetchFactories();
   }, []);
 
-  const types = [
-    "هەموو",
-    "کارگەی سیمەنت",
-    "کارگەی کارەبا",
-    "کارگەی بۆیە",
-    "کارگەی ئاسن",
-  ];
-
+const types = ["هەموو", "سلێمانی", "هەولێر", "کەرکوک", "هەڵەبجە", "دهۆک"];
   const filteredFactories = factories.filter((f) => {
     const matchName = f.name?.toLowerCase().includes(search.toLowerCase());
-    const matchType = typeFilter === "هەموو" || f.type === typeFilter;
+const matchType = typeFilter === "هەموو" || f.city === typeFilter;
     return matchName && matchType;
   });
 
+
+
+
+
+  
   return (
     <div dir="rtl" className="min-h-screen py-6 text-right">
       <motion.div
@@ -57,14 +55,14 @@ export default function Factories() {
         className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 w-[92%] max-w-5xl mx-auto px-2"
       >
         <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800">
-          دۆزینەوەی باشترین کارگەکان
+          دۆزینەوەی باشترین کۆگاکان
         </h1>
 
         <div className="flex gap-3 w-full md:w-auto">
           <div className="relative w-full md:w-64">
             <input
               type="text"
-              placeholder="گەڕان لە کارگە..."
+              placeholder="گەڕان لە کۆگا..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pr-10 pl-4 py-2 rounded-2xl bg-white/70 border border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -208,11 +206,6 @@ function GlowCard({ factory, index }) {
         )}
 
         <div className="relative z-10 bg-white/80 backdrop-blur-xl p-5 rounded-3xl flex flex-col items-center text-center">
-          <img
-            src={factory.image ? factory.image : "https://i.pravatar.cc/150"}
-            className="w-20 h-20 rounded-full shadow-md mb-3"
-            alt="factory"
-          />{" "}
 
           <h2 className="text-lg font-bold text-gray-800">{factory.name}</h2>
           <p className="text-indigo-500 font-medium text-sm">{factory.type}</p>

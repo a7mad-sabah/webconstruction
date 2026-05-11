@@ -1,4 +1,5 @@
 <?php
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -9,93 +10,130 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+/* DB CONNECTION */
 $conn = new mysqli("localhost", "root", "", "workers_db");
 
 if ($conn->connect_error) {
-    echo json_encode(["success" => false, "message" => "DB connection failed"]);
-    exit();
+    die(json_encode([
+        "success" => false,
+        "message" => "Database connection failed: " . $conn->connect_error
+    ]));
 }
 
+/* GET JSON DATA */
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (!$data) {
-    echo json_encode(["success" => false, "message" => "No data"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "No JSON data received"
+    ]);
     exit();
 }
 
-$firstName = $data["firstName"] ?? "";
-$lastName  = $data["lastName"] ?? "";
-$email     = $data["email"] ?? "";
-$password  = $data["password"] ?? "";
-$title     = $data["title"] ?? "";
-$jobType   = $data["jobType"] ?? "";
-$phone     = $data["phone"] ?? "";
-$bio       = $data["bio"] ?? "";
-$profileImage = $data["profileImage"] ?? "";
+/* GET VALUES */
+$firstName = trim($data["firstName"] ?? "");
+$lastName  = trim($data["lastName"] ?? "");
+$email     = trim($data["email"] ?? "");
+$password  = trim($data["password"] ?? "");
+$jobType   = trim($data["jobType"] ?? "");
+$phone     = trim($data["phone"] ?? "");
+$bio       = trim($data["bio"] ?? "");
 
-// required
-if (!$firstName || !$lastName || !$email || !$password) {
-    echo json_encode(["success" => false, "message" => "Required fields missing"]);
+$experienceYears = !empty($data["experienceYears"])
+    ? intval($data["experienceYears"])
+    : null;
+
+$city   = trim($data["city"] ?? "");
+$cvFile = trim($data["cvFile"] ?? "");
+
+$status = "pending";
+
+/* REQUIRED */
+if (
+    empty($firstName) ||
+    empty($lastName) ||
+    empty($email) ||
+    empty($password)
+) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Please fill all required fields"
+    ]);
     exit();
 }
 
-// check email
-$check = $conn->prepare("SELECT id FROM users WHERE email=?");
+/* CHECK EMAIL */
+$check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+
+if (!$check) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Prepare failed: " . $conn->error
+    ]);
+    exit();
+}
+
 $check->bind_param("s", $email);
 $check->execute();
-$res = $check->get_result();
+$check->store_result();
 
-if ($res->num_rows > 0) {
-    echo json_encode(["success" => false, "message" => "Email exists"]);
+if ($check->num_rows > 0) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Email already exists"
+    ]);
     exit();
 }
 
-// ✅ image convert
-if ($profileImage) {
-    $folder = "../uploads/";
+$check->close();
 
-    if (!file_exists($folder)) {
-        mkdir($folder, 0777, true);
-    }
+/* HASH PASSWORD */
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    $image_parts = explode(";base64,", $profileImage);
-
-    if (count($image_parts) == 2) {
-        $image_base64 = base64_decode($image_parts[1]);
-
-        $fileName = uniqid() . ".png";
-        $filePath = $folder . $fileName;
-
-        file_put_contents($filePath, $image_base64);
-
-        $profileImage = "uploads/" . $fileName;
-    }
-}
-
-// ❗ (پێشنیار) password hash
-$password = password_hash($password, PASSWORD_DEFAULT);
-
+/* INSERT USER */
 $sql = "INSERT INTO users 
-(first_name,last_name,email,password,title,job_type,phone,bio,profile_image)
-VALUES (?,?,?,?,?,?,?,?,?)";
+(first_name, last_name, email, password, job_type, phone, bio, experience_years, city, cv_file, status)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 
+if (!$stmt) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Insert prepare failed: " . $conn->error
+    ]);
+    exit();
+}
+
 $stmt->bind_param(
-    "sssssssss",
+    "ssssssissss",
     $firstName,
     $lastName,
     $email,
-    $password,
-    $title,
+    $hashedPassword,
     $jobType,
     $phone,
     $bio,
-    $profileImage
+    $experienceYears,
+    $city,
+    $cvFile,
+    $status
 );
 
 if ($stmt->execute()) {
-    echo json_encode(["success" => true]);
+    echo json_encode([
+        "success" => true,
+        "message" => "User registered successfully"
+    ]);
 } else {
-    echo json_encode(["success" => false, "message" => $stmt->error]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Insert failed: " . $stmt->error
+    ]);
 }
+
+$stmt->close();
+$conn->close();
+
+?>

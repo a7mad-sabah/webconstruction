@@ -1,15 +1,17 @@
 <?php
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// handle preflight request
+/* OPTIONS request */
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
+/* DB connection */
 $conn = new mysqli("localhost", "root", "", "workers_db");
 
 if ($conn->connect_error) {
@@ -20,13 +22,26 @@ if ($conn->connect_error) {
     exit;
 }
 
+/* Read JSON input */
 $rawData = file_get_contents("php://input");
 $data = json_decode($rawData, true);
 
+/* JSON validation */
+if (json_last_error() !== JSON_ERROR_NONE) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Invalid JSON format",
+        "error" => json_last_error_msg()
+    ]);
+    exit;
+}
+
+/* fallback for form-data */
 if (!$data) {
     $data = $_POST;
 }
 
+/* check empty */
 if (!$data || empty($data)) {
     echo json_encode([
         "success" => false,
@@ -35,27 +50,35 @@ if (!$data || empty($data)) {
     exit;
 }
 
-/* fields */
-$karganame = $data["karganame"] ?? "";
-$email = $data["email"] ?? "";
-$password = $data["password"] ?? ""; // ✅ plain password
-$title = $data["title"] ?? "";
-$mawadtype = $data["mawadtype"] ?? "";
-$phone = $data["phone"] ?? "";
-$bio = $data["bio"] ?? "";
-$imageBase64 = $data["profileImage"] ?? "";
+/* inputs */
+$karganame = trim($data["karganame"] ?? "");
+$email     = trim($data["email"] ?? "");
+$password  = $data["password"] ?? "";
+
+$mawadtype = trim($data["mawadtype"] ?? "");
+$phone     = trim($data["phone"] ?? "");
+$bio       = trim($data["bio"] ?? "");
+
+$availableWorkers = !empty($data["availableWorkers"])
+    ? intval($data["availableWorkers"])
+    : null;
+
+$city = trim($data["city"] ?? "");
+
+/* default status */
+$status = "pending";
 
 /* validation */
-if (!$karganame || !$email || !$password) {
+if (empty($karganame) || empty($email) || empty($password)) {
     echo json_encode([
         "success" => false,
-        "message" => "Please fill required fields"
+        "message" => "کێشە: ناو، ئیمەیڵ و وشەی نهێنی پێویستن"
     ]);
     exit;
 }
 
-/* check email exists */
-$check = $conn->prepare("SELECT id FROM companies WHERE email=?");
+/* email check */
+$check = $conn->prepare("SELECT id FROM companies WHERE email = ?");
 $check->bind_param("s", $email);
 $check->execute();
 $result = $check->get_result();
@@ -63,50 +86,35 @@ $result = $check->get_result();
 if ($result->num_rows > 0) {
     echo json_encode([
         "success" => false,
-        "message" => "Email already exists"
+        "message" => "ئیمەیڵ پێشتر تۆمارکراوە"
     ]);
     exit;
 }
 
-/* IMAGE UPLOAD */
-$imageName = null;
+/* hash password */
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-if (!empty($imageBase64)) {
-    $parts = explode(",", $imageBase64);
-
-    if (isset($parts[1])) {
-        $decoded = base64_decode($parts[1]);
-
-        $uploadDir = __DIR__ . "/../../uploads/";
-
-        if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $imageName = time() . "_" . rand(1000,9999) . ".png";
-        file_put_contents($uploadDir . $imageName, $decoded);
-    }
-}
-
-/* ❌ NO HASH - plain password saved */
+/* insert */
 $stmt = $conn->prepare("
     INSERT INTO companies 
-    (karganame, email, password, title, mawadtype, phone, bio, profile_image)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    (karganame, email, password, mawadtype, phone, bio, available_workers, city, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
 $stmt->bind_param(
-    "ssssssss",
+    "ssssssiss",
     $karganame,
     $email,
-    $password, // ❌ مستقیم هەڵگیراوە
-    $title,
+    $hashedPassword,
     $mawadtype,
     $phone,
     $bio,
-    $imageName
+    $availableWorkers,
+    $city,
+    $status
 );
 
+/* execute */
 if ($stmt->execute()) {
     echo json_encode([
         "success" => true,
@@ -115,9 +123,13 @@ if ($stmt->execute()) {
 } else {
     echo json_encode([
         "success" => false,
-        "message" => "Insert failed"
+        "message" => "Insert failed",
+        "error" => $stmt->error
     ]);
 }
 
+/* close */
+$stmt->close();
 $conn->close();
+
 ?>

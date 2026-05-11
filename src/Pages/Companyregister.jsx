@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 /* 🔥 Modern Input Component */
@@ -14,50 +12,33 @@ function InputField({ label, name, type = "text", onChange }) {
         name={name}
         type={type}
         onChange={onChange}
-        className="w-full p-3 border border-gray-300 rounded-xl bg-white 
-        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+        className="w-full p-3 border border-gray-300 rounded-xl bg-white
+        focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
         transition duration-200 shadow-sm"
       />
     </div>
   );
 }
 
-export default function Register() {
-  const navigate = useNavigate(); // ✅ ADD THIS
+export default function CompanyRegister() {
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     email: "",
     password: "",
     karganame: "",
-    title: "",
     mawadtype: "",
     phone: "",
     bio: "",
-    profileImage: "",
+    availableWorkers: "",
+    city: "",
   });
 
-  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
   /* 🧠 handle input */
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  /* 📸 image → base64 */
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-
-    if (file) {
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        setForm({ ...form, profileImage: reader.result });
-      };
-
-      reader.readAsDataURL(file);
-      setPreview(URL.createObjectURL(file));
-    }
   };
 
   /* 🚀 submit */
@@ -67,6 +48,16 @@ export default function Register() {
     try {
       setLoading(true);
 
+      /* ✅ CLEAN DATA */
+      const cleanForm = {
+        ...form,
+        availableWorkers: form.availableWorkers || null,
+        phone: form.phone || null,
+        bio: form.bio || null,
+        city: form.city || null,
+        mawadtype: form.mawadtype || null,
+      };
+
       const res = await fetch(
         "http://localhost/goldenhand/my-project/backend/api/company_register.php",
         {
@@ -74,7 +65,7 @@ export default function Register() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(form),
+          body: JSON.stringify(cleanForm),
         },
       );
 
@@ -83,7 +74,6 @@ export default function Register() {
       if (data.success) {
         alert("✅ کارگە بە سەرکەوتوویی تۆمارکرا");
 
-        // 👉 redirect to login
         navigate("/login");
       } else {
         alert("❌ هەڵە: " + data.message);
@@ -109,31 +99,11 @@ export default function Register() {
             <h1 className="text-3xl font-bold text-center">
               دروستکردنی هەژمار
             </h1>
+
             <p className="text-indigo-100 text-sm text-center mt-5">
               بەشداری بکە لە پلاتفۆرمەکەمان و دەست بکە بە دروستکردنی پڕۆفایلی
               پیشەیی.
             </p>
-          </div>
-
-          {/* PROFILE */}
-          <div className="flex flex-col items-center mt-10">
-            <div className="w-28 h-28 rounded-full border-4 border-white overflow-hidden bg-white flex items-center justify-center shadow-lg">
-              {preview ? (
-                <img src={preview} className="w-full h-full object-cover" />
-              ) : (
-                <FaUserCircle className="text-7xl text-gray-400" />
-              )}
-            </div>
-
-            <label className="mt-3 text-sm cursor-pointer underline">
-              وێنە هەڵبژێرە
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-            </label>
           </div>
 
           <div className="mt-10 text-center">
@@ -153,11 +123,13 @@ export default function Register() {
         {/* RIGHT SIDE */}
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4">
           <InputField
-            label="ناوی کارگە"
+            label="ناوی کۆگا"
             name="karganame"
             onChange={handleChange}
           />
+
           <InputField label="ئیمەیڵ" name="email" onChange={handleChange} />
+
           <InputField
             label="وشەی نهێنی"
             name="password"
@@ -166,13 +138,36 @@ export default function Register() {
           />
 
           <div className="grid grid-cols-2 gap-3">
-            <InputField label="ناونیشان" name="title" onChange={handleChange} />
+            <div>
+              <label className="block mb-1 text-sm text-gray-600">شار</label>
+
+              <select
+                name="city"
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-xl"
+              >
+                <option value="">شار هەڵبژێرە</option>
+                <option value="سلێمانی">سلێمانی</option>
+                <option value="هەڵەبجە">هەڵەبجە</option>
+                <option value="دهۆک">دهۆک</option>
+                <option value="کەرکوک">کەرکوک</option>
+                <option value="هەولێر">هەولێر</option>
+              </select>
+            </div>
+
             <InputField
               label="جۆری مەواد"
               name="mawadtype"
               onChange={handleChange}
             />
           </div>
+
+          <InputField
+            label="کارمەندی بەردەست"
+            name="availableWorkers"
+            type="number"
+            onChange={handleChange}
+          />
 
           <InputField
             label="ژمارەی مۆبایل"
@@ -195,7 +190,6 @@ export default function Register() {
             {loading ? "چاوەڕوان بە..." : "دروستکردنی هەژماری کارگە"}
           </button>
 
-          {/* LOGIN */}
           <p className="text-center text-sm text-gray-600">
             هەژمارت هەیە؟{" "}
             <Link to="/login" className="text-indigo-600 hover:underline">

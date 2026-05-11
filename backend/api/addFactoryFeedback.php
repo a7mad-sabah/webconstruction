@@ -28,3 +28,4 @@ if ($conn->query($sql) === TRUE) {
 } else {
     echo json_encode(["success" => false, "message" => $conn->error]);
 }
+?>
