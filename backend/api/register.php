@@ -10,17 +10,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-/* DB CONNECTION */
 $conn = new mysqli("localhost", "root", "", "workers_db");
 
 if ($conn->connect_error) {
     die(json_encode([
         "success" => false,
-        "message" => "Database connection failed: " . $conn->connect_error
+        "message" => "Database connection failed"
     ]));
 }
 
-/* GET JSON DATA */
 $data = json_decode(file_get_contents("php://input"), true);
 
 if (!$data) {
@@ -31,11 +29,10 @@ if (!$data) {
     exit();
 }
 
-/* GET VALUES */
 $firstName = trim($data["firstName"] ?? "");
 $lastName  = trim($data["lastName"] ?? "");
 $email     = trim($data["email"] ?? "");
-$password  = trim($data["password"] ?? "");
+$password  = $data["password"] ?? ""; // ❌ NO HASH
 $jobType   = trim($data["jobType"] ?? "");
 $phone     = trim($data["phone"] ?? "");
 $bio       = trim($data["bio"] ?? "");
@@ -49,31 +46,16 @@ $cvFile = trim($data["cvFile"] ?? "");
 
 $status = "pending";
 
-/* REQUIRED */
-if (
-    empty($firstName) ||
-    empty($lastName) ||
-    empty($email) ||
-    empty($password)
-) {
+if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
     echo json_encode([
         "success" => false,
-        "message" => "Please fill all required fields"
+        "message" => "فیلدە سەرەکیەکان پێویستن"
     ]);
     exit();
 }
 
-/* CHECK EMAIL */
+/* check email */
 $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
-
-if (!$check) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Prepare failed: " . $conn->error
-    ]);
-    exit();
-}
-
 $check->bind_param("s", $email);
 $check->execute();
 $check->store_result();
@@ -81,37 +63,26 @@ $check->store_result();
 if ($check->num_rows > 0) {
     echo json_encode([
         "success" => false,
-        "message" => "Email already exists"
+        "message" => "ئیمەیڵ هەیە پێشتر"
     ]);
     exit();
 }
 
 $check->close();
 
-/* HASH PASSWORD */
-$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-/* INSERT USER */
+/* ❌ NO HASH PASSWORD */
 $sql = "INSERT INTO users 
 (first_name, last_name, email, password, job_type, phone, bio, experience_years, city, cv_file, status)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 
-if (!$stmt) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Insert prepare failed: " . $conn->error
-    ]);
-    exit();
-}
-
 $stmt->bind_param(
     "ssssssissss",
     $firstName,
     $lastName,
     $email,
-    $hashedPassword,
+    $password, // مستقیم
     $jobType,
     $phone,
     $bio,
@@ -129,7 +100,7 @@ if ($stmt->execute()) {
 } else {
     echo json_encode([
         "success" => false,
-        "message" => "Insert failed: " . $stmt->error
+        "message" => "Insert failed"
     ]);
 }
 

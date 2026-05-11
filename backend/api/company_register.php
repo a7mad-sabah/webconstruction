@@ -5,13 +5,11 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
-/* OPTIONS request */
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-/* DB connection */
 $conn = new mysqli("localhost", "root", "", "workers_db");
 
 if ($conn->connect_error) {
@@ -22,26 +20,12 @@ if ($conn->connect_error) {
     exit;
 }
 
-/* Read JSON input */
-$rawData = file_get_contents("php://input");
-$data = json_decode($rawData, true);
+$data = json_decode(file_get_contents("php://input"), true);
 
-/* JSON validation */
-if (json_last_error() !== JSON_ERROR_NONE) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Invalid JSON format",
-        "error" => json_last_error_msg()
-    ]);
-    exit;
-}
-
-/* fallback for form-data */
 if (!$data) {
     $data = $_POST;
 }
 
-/* check empty */
 if (!$data || empty($data)) {
     echo json_encode([
         "success" => false,
@@ -53,7 +37,7 @@ if (!$data || empty($data)) {
 /* inputs */
 $karganame = trim($data["karganame"] ?? "");
 $email     = trim($data["email"] ?? "");
-$password  = $data["password"] ?? "";
+$password  = $data["password"] ?? ""; // ❌ NO HASH
 
 $mawadtype = trim($data["mawadtype"] ?? "");
 $phone     = trim($data["phone"] ?? "");
@@ -65,19 +49,17 @@ $availableWorkers = !empty($data["availableWorkers"])
 
 $city = trim($data["city"] ?? "");
 
-/* default status */
 $status = "pending";
 
-/* validation */
 if (empty($karganame) || empty($email) || empty($password)) {
     echo json_encode([
         "success" => false,
-        "message" => "کێشە: ناو، ئیمەیڵ و وشەی نهێنی پێویستن"
+        "message" => "ناو، ئیمەیڵ و پاسۆرد پێویستن"
     ]);
     exit;
 }
 
-/* email check */
+/* check email */
 $check = $conn->prepare("SELECT id FROM companies WHERE email = ?");
 $check->bind_param("s", $email);
 $check->execute();
@@ -86,15 +68,12 @@ $result = $check->get_result();
 if ($result->num_rows > 0) {
     echo json_encode([
         "success" => false,
-        "message" => "ئیمەیڵ پێشتر تۆمارکراوە"
+        "message" => "ئیمەیڵ پێشتر هەیە"
     ]);
     exit;
 }
 
-/* hash password */
-$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-/* insert */
+/* ❌ NO PASSWORD HASH */
 $stmt = $conn->prepare("
     INSERT INTO companies 
     (karganame, email, password, mawadtype, phone, bio, available_workers, city, status)
@@ -105,7 +84,7 @@ $stmt->bind_param(
     "ssssssiss",
     $karganame,
     $email,
-    $hashedPassword,
+    $password, // مستقیم
     $mawadtype,
     $phone,
     $bio,
@@ -114,7 +93,6 @@ $stmt->bind_param(
     $status
 );
 
-/* execute */
 if ($stmt->execute()) {
     echo json_encode([
         "success" => true,
@@ -128,7 +106,6 @@ if ($stmt->execute()) {
     ]);
 }
 
-/* close */
 $stmt->close();
 $conn->close();
 
